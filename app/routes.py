@@ -62,32 +62,49 @@ class Client(Resource):
             if not data:
                 return {"message": "Invalid input, request body required"}, 400
 
-            # Find the client by ID
+
             client = db.query(ClientDummy).filter_by(id=client_id).first()
             if not client:
                 return {"message": "Client not found"}, 404
 
-            # Update fields if provided
+
             if "nama" in data:
                 client.nama = data["nama"]
             if "alamat" in data:
                 client.alamat = data["alamat"]
 
-            db.commit()  # Save changes
-            db.refresh(client)  # Ensure session reflects changes
+            db.commit()
+            db.refresh(client)
 
-            # ✅ Convert to JSON-friendly format
             client_data = {
-                "id": str(client.id),  # Convert UUID to string
+                "id": str(client.id),
                 "nama": client.nama,
                 "alamat": client.alamat,
                 "created_time": client.created_time.isoformat() if client.created_time else None,  # Safe conversion
             }
 
-            return client_data, 200  # ✅ Direct return (Flask auto-converts to JSON)
+            response = jsonify({"message": "Client updated!", "data": jsonify(client_data).json}).json
+
+            log = ApiLogs(
+                request_payload= data,
+                response_payloads= response
+            )
+
+            return response, 201
 
         except Exception as e:
-            db.rollback()  # Rollback in case of error
+            db.rollback()
+
+            response = jsonify({"message": "Error updating client", "error": jsonify(str(e)).json}).json
+
+            log = ApiLogs(
+                request_payload= data,
+                response_payloads= response
+            )
+
+            db.add(log)
+            db.commit()
+
             return {"message": "Error updating client", "error": str(e)}, 500
 
     def delete(self, client_id):
