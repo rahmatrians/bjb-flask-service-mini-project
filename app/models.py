@@ -16,6 +16,6 @@ class ApiLogs(Base):
     __tablename__ = "api_logs"
 
     api_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    request_payload = Column(JSON, nullable=False)
+    request_payload = Column(JSON, nullable=True)
     response_payloads = Column(JSON, nullable=False)
     created_time = Column(TIMESTAMP, server_default=func.now())
