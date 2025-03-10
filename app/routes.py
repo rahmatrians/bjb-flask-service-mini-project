@@ -55,6 +55,41 @@ class Client(Resource):
             return jsonify({"id": str(client.id), "nama": client.nama, "alamat": client.alamat})
         return jsonify({"message": "Client not found"}), 404
 
+    def put(self, client_id):
+        """Update an existing client"""
+        try:
+            data = request.get_json()
+            if not data:
+                return {"message": "Invalid input, request body required"}, 400
+
+            # Find the client by ID
+            client = db.query(ClientDummy).filter_by(id=client_id).first()
+            if not client:
+                return {"message": "Client not found"}, 404
+
+            # Update fields if provided
+            if "nama" in data:
+                client.nama = data["nama"]
+            if "alamat" in data:
+                client.alamat = data["alamat"]
+
+            db.commit()  # Save changes
+            db.refresh(client)  # Ensure session reflects changes
+
+            # ✅ Convert to JSON-friendly format
+            client_data = {
+                "id": str(client.id),  # Convert UUID to string
+                "nama": client.nama,
+                "alamat": client.alamat,
+                "created_time": client.created_time.isoformat() if client.created_time else None,  # Safe conversion
+            }
+
+            return client_data, 200  # ✅ Direct return (Flask auto-converts to JSON)
+
+        except Exception as e:
+            db.rollback()  # Rollback in case of error
+            return {"message": "Error updating client", "error": str(e)}, 500
+
     def delete(self, client_id):
         """Delete a client"""
         client = db.query(ClientDummy).filter_by(id=client_id).first()
