@@ -1,0 +1,1 @@
+DATABASE_URL = "postgresql+psycopg2://postgres:adaaja@localhost:5432/demo_python"
