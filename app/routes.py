@@ -52,7 +52,17 @@ class Client(Resource):
         """Get a single client"""
         client = db.query(ClientDummy).filter_by(id=client_id).first()
         if client:
-            return jsonify({"id": str(client.id), "nama": client.nama, "alamat": client.alamat})
+            response = jsonify({"message": "Client found", "data": jsonify({"id": str(client.id), "nama": client.nama, "alamat": client.alamat}).json}).json
+
+            log = ApiLogs(
+                request_payload= None,
+                response_payloads= response
+            )
+
+            db.add(log)
+            db.commit()
+            
+            return response
         return jsonify({"message": "Client not found"}), 404
 
     def put(self, client_id):
